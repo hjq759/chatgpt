@@ -1926,7 +1926,25 @@ function orb(p,r,color,alpha=1){const q=project(p);if(!q)return;const radius=cla
 function worldRing(p,r,color,alpha=1,thick=1.5){const ps=Array.from({length:61},(_,j)=&gt;{const a=j/60*Math.PI*2;return{x:p.x+Math.cos(a)*r,y:p.y+Math.sin(a)*r,z:p.z};});poly(ps,color,thick,alpha);}
 function sphere(p,r){const color=p.x===0||p.x===-4?C.flow:C.parallel;for(let j=0;j&lt;3;j++){const phase=j*Math.PI/3;poly(Array.from({length:45},(_,k)=&gt;{const a=k/44*Math.PI*2;return{x:p.x+Math.cos(a)*r*Math.cos(phase),y:p.y+Math.sin(a)*r,z:p.z+Math.cos(a)*r*Math.sin(phase)};}),color,1,.25);}orb(p,.22,color,.7);}
 function tube(a,b,weight){ctx.save();if(weight&lt;0)ctx.setLineDash([4,4]);poly([a,b],C.flow,1,overview?.35:.17);ctx.restore();}
-function layerPlane(z,name){poly([{x:-11,y:-7,z},{x:11,y:-7,z},{x:11,y:7,z},{x:-11,y:7,z}],C.flow,1,.18,true);label(name,{x:0,y:8.5,z});}
+function layerPlane(z,name){const corners=[{x:-11,y:-7,z},{x:11,y:-7,z},{x:11,y:7,z},{x:-11,y:7,z}];poly(corners,C.flow,1,.28,true);for(let x=-8;x&lt;=8;x+=4)poly([{x,y:-7,z},{x,y:7,z}],C.flow,1,.06);label(name,{x:0,y:overview?8.5:4,z});}
+function drawComputationSpace(){
+ const current=checkpoint?gates[checkpoint-1].value:&#x27;0.800&#x27;;
+ if(!overview)label(&#x27;携带 &#x27;+current,{...ship,y:ship.y-1.05});
+ // Each hidden neuron is an actual accumulator in the 3D world.
+ neuralHidden.forEach((n,j)=&gt;{const computed=checkpoint&gt;=3,activated=checkpoint&gt;=4,number=activated?mlpA1[j]:mlpZ1[j];label(computed?(activated?&#x27;a&#x27;:&#x27;Σ&#x27;)+&#x27; = &#x27;+number.toFixed(2):&#x27;Σ&#x27;,n);if(overview||Math.abs(n.z-ship.z)&lt;24){label(&#x27;b = &#x27;+(mlp.b1[j]&gt;=0?&#x27;+&#x27;:&#x27;&#x27;)+mlp.b1[j].toFixed(2),{...n,x:n.x+2.6,y:n.y+2.3});}
+ if(checkpoint===3&amp;&amp;readHold&gt;0){const p=1-readHold/3;const source={...n,x:n.x+3,y:n.y+4,z:n.z-3};orb(mix(source,n,p),.13,C.parallel,.9);}
+ });
+ neuralInputs.forEach((n,j)=&gt;{if(overview||ship.z&lt;16)label(mlp.x[j].toFixed(2),n);});
+ if(checkpoint&gt;=6)label(&#x27;Σ = &#x27;+mlpZ2.toFixed(3),neuralOutput);else if(overview)label(&#x27;Σ&#x27;,neuralOutput);
+ // Physical multiplier hoops carry both their weight and the numeric change.
+ [{g:gates[1],weight:&#x27;× 0.30&#x27;,change:&#x27;0.80 → 0.24&#x27;,ready:checkpoint&lt;=2},{g:gates[4],weight:&#x27;× 0.70&#x27;,change:&#x27;0.14 → 0.098&#x27;,ready:checkpoint&gt;=4}].forEach(({g,weight,change,ready})=&gt;{if(overview||ready&amp;&amp;g.z-ship.z&lt;34&amp;&amp;g.z-ship.z&gt;-2){worldRing(g,2.22,C.flow,.35,1);label(weight,g);label(change,{...g,y:g.y-2.65});}});
+ // A ReLU field shows a positive signal passing and a negative signal stopping.
+ const relu=gates[3];if(overview||relu.z-ship.z&lt;33&amp;&amp;relu.z-ship.z&gt;-5){poly([{x:-5,y:-3,z:58},{x:5,y:-3,z:58},{x:5,y:3,z:58},{x:-5,y:3,z:58}],C.flow,1,.35,true);label(&#x27;ReLU · max(0, z)&#x27;,{x:0,y:3.7,z:58});const p=checkpoint&lt;3?0:checkpoint===3?Math.min(1,(ship.z-48)/10):checkpoint===4?1-readHold/3:1;
+ const negative={x:-3,y:1,z:checkpoint&lt;4?53+Math.max(0,p)*4:57-Math.max(0,p)*3};orb(negative,checkpoint&gt;=4?.07:.18,C.parallel,.8);label(checkpoint&gt;=4?&#x27;−0.10 → 0&#x27;:&#x27;−0.10&#x27;,{...negative,y:negative.y+1});label(checkpoint&gt;=4?&#x27;0.14 → 0.14&#x27;:&#x27;正数通过&#x27;,{x:2.8,y:-1,z:58});if(checkpoint===4&amp;&amp;readHold&gt;0){for(let k=0;k&lt;5;k++){const a=k*1.256,dist=(1-readHold/3)*2;orb({x:negative.x+Math.cos(a)*dist,y:negative.y+Math.sin(a)*dist,z:negative.z},.04,C.parallel,readHold/3);}}
+ }
+ // The output gate contains a spatial sigmoid curve and the final probability.
+ if(overview||gates[6].z-ship.z&lt;38){const z=112;poly([{x:-4,y:-2,z},{x:4,y:-2,z}],C.border,1,.6);poly([{x:0,y:-2,z},{x:0,y:2,z}],C.border,1,.6);poly(Array.from({length:61},(_,i)=&gt;{const x=-4+i*8/60;return{x,y:4/(1+Math.exp(-x))-2,z};}),C.flow,2,.8);label(&#x27;Sigmoid · 0～1&#x27;,{x:0,y:3,z});if(checkpoint&gt;=6){const p={x:mlpZ2,y:mlpProbability*4-2,z};orb(p,.13,C.flow,.9);label(&#x27;1.218 → 77.2%&#x27;,{...p,y:p.y+.8});}}
+}
 function mix(a,b,p){return{x:lerp(a.x,b.x,p),y:lerp(a.y,b.y,p),z:lerp(a.z,b.z,p)};}
 function update(dt){if(!running||overview)return;flightTime+=dt;
 let dx=(keys.has(&#x27;right&#x27;)?1:0)-(keys.has(&#x27;left&#x27;)?1:0),dy=(keys.has(&#x27;up&#x27;)?1:0)-(keys.has(&#x27;down&#x27;)?1:0);if(dx||dy){target.x=clamp(target.x+dx*dt*5.5,-11,11);target.y=clamp(target.y+dy*dt*5.5,-7,7);}const before={...ship};ship.x=lerp(ship.x,target.x,Math.min(1,dt*6));ship.y=lerp(ship.y,target.y,Math.min(1,dt*6));vel={x:dt?(ship.x-before.x)/dt:0,y:dt?(ship.y-before.y)/dt:0};
@@ -1940,10 +1958,11 @@ function draw(){if(!C.bg)return;syncMLP();setCamera();sceneLabelBoxes=[];ctx.cle
 for(const star of stars)orb(star,.025,C.fg,.23);
 for(let z=-5;z&lt;140;z+=6){poly([{x:-15,y:-8,z},{x:15,y:-8,z}],C.border,1,.23);poly([{x:-15,y:-8,z},{x:-15,y:8,z}],C.border,1,.13);poly([{x:15,y:-8,z},{x:15,y:8,z}],C.border,1,.13);}
 for(let x=-15;x&lt;=15;x+=5)poly([{x,y:-8,z:-5},{x,y:-8,z:140}],C.border,1,.22);
-if(overview){layerPlane(0,&#x27;输入层 x · 2&#x27;);layerPlane(48,&#x27;隐藏层 a¹ · 3&#x27;);layerPlane(98,&#x27;输出层 ŷ · 1&#x27;);}
+layerPlane(0,&#x27;输入层 x · 2&#x27;);layerPlane(48,&#x27;隐藏层 a¹ · 3&#x27;);layerPlane(98,&#x27;输出层 ŷ · 1&#x27;);
 neuralInputs.forEach((a,j)=&gt;neuralHidden.forEach((b,i)=&gt;tube(a,b,mlp.w1[i][j])));neuralHidden.forEach((a,i)=&gt;tube(a,neuralOutput,mlp.w2[i]));
-if(overview){label(&#x27;w¹₂₁ = 0.30&#x27;,mix(neuralInputs[0],neuralHidden[1],.36));label(&#x27;w¹₂₂ = −0.50&#x27;,mix(neuralInputs[1],neuralHidden[1],.62));label(&#x27;w²₂ = 0.70&#x27;,mix(neuralHidden[1],neuralOutput,.48));}
+if(overview||ship.z&lt;45){label(&#x27;w = +0.30&#x27;,mix(neuralInputs[0],neuralHidden[1],.36));label(&#x27;w = −0.50&#x27;,mix(neuralInputs[1],neuralHidden[1],.62));}if(overview||checkpoint&gt;=4)label(&#x27;w = +0.70&#x27;,mix(neuralHidden[1],neuralOutput,.48));
 const spheres=[...neuralInputs,...neuralHidden,neuralOutput].sort((a,b)=&gt;b.z-a.z);spheres.forEach(n=&gt;sphere(n,n.z===98?3.8:2.4));
+drawComputationSpace();
 if(launched){const q1=clamp((ship.z-12)/36,0,1),q2=clamp((ship.z-58)/40,0,1);if(q1&gt;0&amp;&amp;q1&lt;1)neuralInputs.forEach((a,i)=&gt;neuralHidden.forEach((b,j)=&gt;{if(i===0&amp;&amp;j===1)return;orb(mix(a,b,q1),.16,C.parallel,.9);}));if(q2&gt;0&amp;&amp;q2&lt;1)neuralHidden.forEach((a,j)=&gt;{if(j===2)orb(mix(a,neuralOutput,q2),.2,C.parallel,.9);});}
 for(let i=gates.length-1;i&gt;=0;i--){const g=gates[i],passed=i&lt;checkpoint,isNext=i===checkpoint;const alpha=passed?.2:isNext?1:.28;worldRing(g,1.85,C.flow,alpha,isNext?3:1);if(isNext){worldRing({...g,z:g.z+.28},2.03,C.flow,.22,1);for(let j=0;j&lt;4;j++){const a=j*Math.PI/2+(running?flightTime*.5:0);orb({x:g.x+Math.cos(a)*2.15,y:g.y+Math.sin(a)*2.15,z:g.z},.08,C.flow,.8);}if(overview||g.z-ship.z&lt;35)label(&#x27;第&#x27;+(i+1)+&#x27;站 · &#x27;+g.name,{...g,y:g.y+2.8});}else if(overview&amp;&amp;i===6)label(&#x27;点外卖概率&#x27;,{...g,y:g.y+3});}
 if(overview){neuralInputs.forEach(n=&gt;label(n.name,{...n,y:n.y-3}));neuralHidden.forEach(n=&gt;label(n.name,{...n,y:n.y-4}));label(neuralOutput.name,{...neuralOutput,y:neuralOutput.y-5});}
