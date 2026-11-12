@@ -1862,7 +1862,7 @@ html&gt;body{padding:0}&lt;/style&gt;
  &lt;div id=&quot;flight-value&quot; class=&quot;text-small&quot; aria-live=&quot;polite&quot;&gt;越饿越支持点外卖，越贵越反对。每位朋友在意的程度不同，这个“在意程度”就是权重。&lt;/div&gt;
  &lt;/div&gt;
  &lt;div id=&quot;flight-side-focus&quot; class=&quot;text-small&quot; aria-live=&quot;polite&quot;&gt;你将经过朋友②，三人的计算列在下面。&lt;/div&gt;
- &lt;details open&gt;&lt;summary&gt;沿途的 MLP 计算记录&lt;/summary&gt;&lt;div class=&quot;mlp-tensors tabular-nums text-small&quot; aria-live=&quot;polite&quot;&gt;
+ &lt;details&gt;&lt;summary&gt;展开完整 MLP 计算记录&lt;/summary&gt;&lt;div class=&quot;mlp-tensors tabular-nums text-small&quot; aria-live=&quot;polite&quot;&gt;
  &lt;div id=&quot;mlp-tensor-x&quot;&gt;输入 x = [0.80, 0.40]ᵀ&lt;/div&gt;&lt;div id=&quot;mlp-tensor-z&quot;&gt;加权总分 z¹ = 等待汇总&lt;/div&gt;&lt;div id=&quot;mlp-tensor-a&quot;&gt;激活结果 a¹ = 等待过闸&lt;/div&gt;&lt;div id=&quot;mlp-tensor-out&quot;&gt;输出总分 z² = 等待群聊汇总&lt;/div&gt;&lt;div id=&quot;mlp-tensor-p&quot;&gt;概率 ŷ = 等待换算&lt;/div&gt;
  &lt;/div&gt;&lt;/details&gt;
  &lt;details&gt;&lt;summary&gt;展开权重矩阵与偏置&lt;/summary&gt;
@@ -1871,7 +1871,7 @@ html&gt;body{padding:0}&lt;/style&gt;
  &lt;div class=&quot;text-small tabular-nums&quot;&gt;W² = [0.80, 0.70, 1.00]；b² = −0.08&lt;/div&gt;&lt;div class=&quot;text-small&quot;&gt;9 个权重 ＋ 4 个偏置 = 13 个参数。负权重的连线画成虚线。&lt;/div&gt;
  &lt;/details&gt;
  &lt;details&gt;&lt;summary&gt;激活函数到底改变了什么？&lt;/summary&gt;&lt;div class=&quot;text-small&quot;&gt;隐藏层使用 ReLU：a = max(0, z)。朋友①的 −0.10 变成 0；朋友②的 0.14 保持不变。这个非线性步骤，让网络不只是反复做加减乘法。&lt;/div&gt;&lt;div class=&quot;text-small&quot;&gt;输出使用 Sigmoid：σ(z) = 1 ÷ (1 + e 的 −z 次方)。σ(1.218) ≈ 0.7717，即约 77.2%。&lt;/div&gt;&lt;/details&gt;
- &lt;details open&gt;&lt;summary&gt;三位朋友各算了什么？&lt;/summary&gt;
+ &lt;details&gt;&lt;summary&gt;展开三位朋友的完整账本&lt;/summary&gt;
  &lt;div class=&quot;table-responsive&quot;&gt;&lt;table class=&quot;table table-sm tabular-nums&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;朋友&lt;/th&gt;&lt;th&gt;饥饿贡献 ＋ 价格贡献 ＋ 原本倾向&lt;/th&gt;&lt;th&gt;传出的支持分&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
  &lt;tr&gt;&lt;td&gt;① 省钱派&lt;/td&gt;&lt;td&gt;0.80 × 0.50 + 0.40 × (−1.00) − 0.10 = −0.10&lt;/td&gt;&lt;td&gt;0.00&lt;/td&gt;&lt;/tr&gt;
  &lt;tr&gt;&lt;td id=&quot;flight-friend-two&quot;&gt;② 纠结派 · 你的路线&lt;/td&gt;&lt;td&gt;0.80 × 0.30 + 0.40 × (−0.50) + 0.10 = 0.14&lt;/td&gt;&lt;td&gt;0.14&lt;/td&gt;&lt;/tr&gt;
@@ -1924,26 +1924,45 @@ function poly(points,color,width=1,alpha=1,close=false){const ps=points.map(proj
 function label(text,p,color=C.fg){const q=project(p);if(!q||q.x&lt;0||q.x&gt;W||q.y&lt;12||q.y&gt;H-12)return;ctx.font=&#x27;400 &#x27;+Math.max(11,font)+&#x27;px system-ui,sans-serif&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.textBaseline=&#x27;middle&#x27;;const w=ctx.measureText(text).width;const x=clamp(q.x,w/2+6,W-w/2-6);let chosen=null;for(const shift of [0,-25,25,-50,50,-75,75,-100,100]){const y=q.y+shift;if(y&lt;14||y&gt;H-14)continue;const box={l:x-w/2-5,r:x+w/2+5,t:y-12,b:y+12};if(sceneLabelBoxes.every(b=&gt;box.r&lt;b.l||box.l&gt;b.r||box.b&lt;b.t||box.t&gt;b.b)){chosen={...box,y};break;}}if(!chosen)return;sceneLabelBoxes.push(chosen);if(Math.abs(chosen.y-q.y)&gt;5){ctx.strokeStyle=C.border;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(x,chosen.y);ctx.stroke();}ctx.fillStyle=C.bg;ctx.globalAlpha=.9;ctx.fillRect(x-w/2-4,chosen.y-11,w+8,22);ctx.globalAlpha=1;ctx.fillStyle=color;ctx.fillText(text,x,chosen.y);}
 function orb(p,r,color,alpha=1){const q=project(p);if(!q)return;const radius=clamp(r*q.s,.8,80);ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,radius,0,Math.PI*2);ctx.fill();ctx.restore();}
 function worldRing(p,r,color,alpha=1,thick=1.5){const ps=Array.from({length:61},(_,j)=&gt;{const a=j/60*Math.PI*2;return{x:p.x+Math.cos(a)*r,y:p.y+Math.sin(a)*r,z:p.z};});poly(ps,color,thick,alpha);}
-function sphere(p,r){const color=p.x===0||p.x===-4?C.flow:C.parallel;for(let j=0;j&lt;3;j++){const phase=j*Math.PI/3;poly(Array.from({length:45},(_,k)=&gt;{const a=k/44*Math.PI*2;return{x:p.x+Math.cos(a)*r*Math.cos(phase),y:p.y+Math.sin(a)*r,z:p.z+Math.cos(a)*r*Math.sin(phase)};}),color,1,.25);}orb(p,.22,color,.7);}
-function tube(a,b,weight){ctx.save();if(weight&lt;0)ctx.setLineDash([4,4]);poly([a,b],C.flow,1,overview?.35:.17);ctx.restore();}
+function sphere(p,r){const color=p.x===0||p.x===-4?C.flow:C.parallel;for(let j=0;j&lt;3;j++){const phase=j*Math.PI/3;poly(Array.from({length:45},(_,k)=&gt;{const a=k/44*Math.PI*2;return{x:p.x+Math.cos(a)*r*Math.cos(phase),y:p.y+Math.sin(a)*r,z:p.z+Math.cos(a)*r*Math.sin(phase)};}),color,1,overview?.25:.055);}orb(p,.22,color,overview?.7:.14);}
+function tube(a,b,weight){ctx.save();if(weight&lt;0)ctx.setLineDash([4,4]);poly([a,b],C.flow,1,overview?.32:.055);ctx.restore();}
 function layerPlane(z,name){const corners=[{x:-11,y:-7,z},{x:11,y:-7,z},{x:11,y:7,z},{x:-11,y:7,z}];poly(corners,C.flow,1,.28,true);for(let x=-8;x&lt;=8;x+=4)poly([{x,y:-7,z},{x,y:7,z}],C.flow,1,.06);label(name,{x:0,y:overview?8.5:4,z});}
+function focusedGate(){return Math.min(6,checkpoint&gt;0&amp;&amp;(readHold&gt;0||finished)?checkpoint-1:checkpoint);}
 function drawComputationSpace(){
- const current=checkpoint?gates[checkpoint-1].value:&#x27;0.800&#x27;;
- if(!overview)label(&#x27;携带 &#x27;+current,{...ship,y:ship.y-1.05});
- // Each hidden neuron is an actual accumulator in the 3D world.
- neuralHidden.forEach((n,j)=&gt;{const computed=checkpoint&gt;=3,activated=checkpoint&gt;=4,number=activated?mlpA1[j]:mlpZ1[j];label(computed?(activated?&#x27;a&#x27;:&#x27;Σ&#x27;)+&#x27; = &#x27;+number.toFixed(2):&#x27;Σ&#x27;,n);if(overview||Math.abs(n.z-ship.z)&lt;24){label(&#x27;b = &#x27;+(mlp.b1[j]&gt;=0?&#x27;+&#x27;:&#x27;&#x27;)+mlp.b1[j].toFixed(2),{...n,x:n.x+2.6,y:n.y+2.3});}
- if(checkpoint===3&amp;&amp;readHold&gt;0){const p=1-readHold/3;const source={...n,x:n.x+3,y:n.y+4,z:n.z-3};orb(mix(source,n,p),.13,C.parallel,.9);}
- });
- neuralInputs.forEach((n,j)=&gt;{if(overview||ship.z&lt;16)label(mlp.x[j].toFixed(2),n);});
- if(checkpoint&gt;=6)label(&#x27;Σ = &#x27;+mlpZ2.toFixed(3),neuralOutput);else if(overview)label(&#x27;Σ&#x27;,neuralOutput);
- // Physical multiplier hoops carry both their weight and the numeric change.
- [{g:gates[1],weight:&#x27;× 0.30&#x27;,change:&#x27;0.80 → 0.24&#x27;,ready:checkpoint&lt;=2},{g:gates[4],weight:&#x27;× 0.70&#x27;,change:&#x27;0.14 → 0.098&#x27;,ready:checkpoint&gt;=4}].forEach(({g,weight,change,ready})=&gt;{if(overview||ready&amp;&amp;g.z-ship.z&lt;34&amp;&amp;g.z-ship.z&gt;-2){worldRing(g,2.22,C.flow,.35,1);label(weight,g);label(change,{...g,y:g.y-2.65});}});
- // A ReLU field shows a positive signal passing and a negative signal stopping.
- const relu=gates[3];if(overview||relu.z-ship.z&lt;33&amp;&amp;relu.z-ship.z&gt;-5){poly([{x:-5,y:-3,z:58},{x:5,y:-3,z:58},{x:5,y:3,z:58},{x:-5,y:3,z:58}],C.flow,1,.35,true);label(&#x27;ReLU · max(0, z)&#x27;,{x:0,y:3.7,z:58});const p=checkpoint&lt;3?0:checkpoint===3?Math.min(1,(ship.z-48)/10):checkpoint===4?1-readHold/3:1;
- const negative={x:-3,y:1,z:checkpoint&lt;4?53+Math.max(0,p)*4:57-Math.max(0,p)*3};orb(negative,checkpoint&gt;=4?.07:.18,C.parallel,.8);label(checkpoint&gt;=4?&#x27;−0.10 → 0&#x27;:&#x27;−0.10&#x27;,{...negative,y:negative.y+1});label(checkpoint&gt;=4?&#x27;0.14 → 0.14&#x27;:&#x27;正数通过&#x27;,{x:2.8,y:-1,z:58});if(checkpoint===4&amp;&amp;readHold&gt;0){for(let k=0;k&lt;5;k++){const a=k*1.256,dist=(1-readHold/3)*2;orb({x:negative.x+Math.cos(a)*dist,y:negative.y+Math.sin(a)*dist,z:negative.z},.04,C.parallel,readHold/3);}}
+ if(overview)return;
+ const i=focusedGate(),g=gates[i],arrived=checkpoint&gt;i;
+ const p=arrived?clamp((3-readHold)/1.3,0,1):0;
+ const titles=[&#x27;收到两条消息&#x27;,&#x27;饥饿消息乘以 0.30&#x27;,&#x27;把饿、贵和懒合在一起&#x27;,&#x27;正数通过，负数归零&#x27;,&#x27;朋友②的意见乘以 0.70&#x27;,&#x27;汇总三人意见&#x27;,&#x27;把总分换成可能性&#x27;];
+ const heading=&#x27;第 &#x27;+(i+1)+&#x27; / 7 步 · &#x27;+titles[i];
+ ctx.font=&#x27;400 &#x27;+font+&#x27;px system-ui,sans-serif&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.textBaseline=&#x27;middle&#x27;;ctx.fillStyle=C.fg;ctx.fillText(heading,W/2,24);
+ sceneLabelBoxes.push({l:0,r:W,t:8,b:40});
+ const at=(x=0,y=0,z=0)=&gt;({x:g.x+x,y:g.y+y,z:g.z+z});
+ if(i===0){
+  orb(at(-1.1),.26,C.flow,.9);orb(at(1.4),.2,C.parallel,.8);
+  label(&#x27;饥饿 0.80&#x27;,at(-1.1,1));label(&#x27;价格贵 0.40&#x27;,at(1.4,-1));
+ }else if(i===1||i===4){
+  const before=i===1?.8:.14,after=i===1?.24:.098,multiplier=i===1?&#x27;× 0.30&#x27;:&#x27;× 0.70&#x27;;
+  const showResult=arrived&amp;&amp;p&gt;.75;
+  orb(at(0,0,-.25),.13+.32*Math.sqrt(lerp(before,after,p)),C.flow,.9);
+  label(multiplier,at(0,1.6));label(showResult?(i===1?&#x27;0.80 → 0.24&#x27;:&#x27;0.14 → 0.098&#x27;):(i===1?&#x27;携带 0.80&#x27;:&#x27;携带 0.14&#x27;),at(0,-2.4));
+ }else if(i===2||i===5){
+  const numbers=i===2?[.24,-.2,.1]:[0,.098,1.2,-.08];
+  const origins=i===2?[[-2,.6],[2,.6],[0,2.2]]:[[-2,1],[2,1],[-1.7,-1.2],[1.7,-1.2]];
+  if(p&lt;.92){numbers.forEach((n,j)=&gt;{const start=at(origins[j][0],origins[j][1],-.4);const point=mix(start,at(0,0,-.1),p);if(n!==0)orb(point,.1+.16*Math.sqrt(Math.abs(n)),n&lt;0?C.parallel:C.flow,.9);if(p&lt;.62)label((n&gt;0?&#x27;+&#x27;:&#x27;&#x27;)+n.toFixed(i===5?3:2),{...point,y:point.y+.55});});}
+  else{orb(at(0,0,-.1),.35,C.flow,.9);label(i===2?&#x27;合计 0.14&#x27;:&#x27;合计 1.218&#x27;,at(0,1));}
+  label(i===2?&#x27;两路贡献 + 原本倾向&#x27;:&#x27;三人贡献 + 群聊偏置&#x27;,at(0,-2.6));
+ }else if(i===3){
+  poly([at(-3,-1.8),at(3,-1.8),at(3,1.8),at(-3,1.8)],C.flow,1,.25,true);
+  const positive=at(1.15,0,arrived?p*1.2:-1),negative=at(-1.7,0,arrived?-p*1.5:-1);
+  orb(positive,.22,C.flow,.9);if(p&lt;.8)orb(negative,.18*(1-p),C.parallel,.85);
+  label(arrived?&#x27;0.14 → 0.14&#x27;:&#x27;0.14&#x27;,at(1.15,-1.2));label(arrived?&#x27;−0.10 → 0&#x27;:&#x27;−0.10&#x27;,at(-1.7,1.2));
+ }else{
+  const z=g.z;
+  poly([at(-4,-2),at(4,-2)],C.border,1,.5);
+  poly(Array.from({length:61},(_,j)=&gt;{const x=-4+j*8/60;return{x:g.x+x,y:g.y+4/(1+Math.exp(-x))-2,z};}),C.flow,2,.85);
+  if(arrived){const score=mlpZ2*p,probability=1/(1+Math.exp(-score));const point={x:g.x+score,y:g.y+probability*4-2,z};orb(point,.13,C.flow,.9);if(p&gt;.9)label(&#x27;1.218 → 77.2%&#x27;,{...point,y:point.y+.8});}
+  else label(&#x27;带入总分 1.218&#x27;,at(0,-2.7));
  }
- // The output gate contains a spatial sigmoid curve and the final probability.
- if(overview||gates[6].z-ship.z&lt;38){const z=112;poly([{x:-4,y:-2,z},{x:4,y:-2,z}],C.border,1,.6);poly([{x:0,y:-2,z},{x:0,y:2,z}],C.border,1,.6);poly(Array.from({length:61},(_,i)=&gt;{const x=-4+i*8/60;return{x,y:4/(1+Math.exp(-x))-2,z};}),C.flow,2,.8);label(&#x27;Sigmoid · 0～1&#x27;,{x:0,y:3,z});if(checkpoint&gt;=6){const p={x:mlpZ2,y:mlpProbability*4-2,z};orb(p,.13,C.flow,.9);label(&#x27;1.218 → 77.2%&#x27;,{...p,y:p.y+.8});}}
 }
 function mix(a,b,p){return{x:lerp(a.x,b.x,p),y:lerp(a.y,b.y,p),z:lerp(a.z,b.z,p)};}
 function update(dt){if(!running||overview)return;flightTime+=dt;
@@ -1955,18 +1974,23 @@ if(gap&lt;4&amp;&amp;dist&gt;=1.65&amp;&amp;checkpoint&lt;7){const sx=g.x&gt;shi
 if(notice&amp;&amp;notice!==lastNotice){status.textContent=notice;lastNotice=notice;}else if(!notice&amp;&amp;frameNow-lastNoticeTime&gt;1800&amp;&amp;checkpoint&lt;7){const next=gates[checkpoint];const msg=&#x27;下一站：&#x27;+next.name+&#x27; · 对准亮色光环&#x27;;if(status.textContent!==msg)status.textContent=msg;lastNotice=&#x27;&#x27;;}
 }
 function draw(){if(!C.bg)return;syncMLP();setCamera();sceneLabelBoxes=[];ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
-for(const star of stars)orb(star,.025,C.fg,.23);
-for(let z=-5;z&lt;140;z+=6){poly([{x:-15,y:-8,z},{x:15,y:-8,z}],C.border,1,.23);poly([{x:-15,y:-8,z},{x:-15,y:8,z}],C.border,1,.13);poly([{x:15,y:-8,z},{x:15,y:8,z}],C.border,1,.13);}
-for(let x=-15;x&lt;=15;x+=5)poly([{x,y:-8,z:-5},{x,y:-8,z:140}],C.border,1,.22);
-layerPlane(0,&#x27;输入层 x · 2&#x27;);layerPlane(48,&#x27;隐藏层 a¹ · 3&#x27;);layerPlane(98,&#x27;输出层 ŷ · 1&#x27;);
+for(const star of stars)orb(star,.025,C.fg,.10);
+for(let z=-5;z&lt;140;z+=12)poly([{x:-15,y:-8,z},{x:15,y:-8,z}],C.border,1,.14);
+for(let x=-15;x&lt;=15;x+=5)poly([{x,y:-8,z:-5},{x,y:-8,z:140}],C.border,1,.12);
+if(overview){layerPlane(0,&#x27;输入层 · 2 条消息&#x27;);layerPlane(48,&#x27;隐藏层 · 3 位朋友&#x27;);layerPlane(98,&#x27;输出层 · 1 个结果&#x27;);}
 neuralInputs.forEach((a,j)=&gt;neuralHidden.forEach((b,i)=&gt;tube(a,b,mlp.w1[i][j])));neuralHidden.forEach((a,i)=&gt;tube(a,neuralOutput,mlp.w2[i]));
-if(overview||ship.z&lt;45){label(&#x27;w = +0.30&#x27;,mix(neuralInputs[0],neuralHidden[1],.36));label(&#x27;w = −0.50&#x27;,mix(neuralInputs[1],neuralHidden[1],.62));}if(overview||checkpoint&gt;=4)label(&#x27;w = +0.70&#x27;,mix(neuralHidden[1],neuralOutput,.48));
 const spheres=[...neuralInputs,...neuralHidden,neuralOutput].sort((a,b)=&gt;b.z-a.z);spheres.forEach(n=&gt;sphere(n,n.z===98?3.8:2.4));
-drawComputationSpace();
-if(launched){const q1=clamp((ship.z-12)/36,0,1),q2=clamp((ship.z-58)/40,0,1);if(q1&gt;0&amp;&amp;q1&lt;1)neuralInputs.forEach((a,i)=&gt;neuralHidden.forEach((b,j)=&gt;{if(i===0&amp;&amp;j===1)return;orb(mix(a,b,q1),.16,C.parallel,.9);}));if(q2&gt;0&amp;&amp;q2&lt;1)neuralHidden.forEach((a,j)=&gt;{if(j===2)orb(mix(a,neuralOutput,q2),.2,C.parallel,.9);});}
-for(let i=gates.length-1;i&gt;=0;i--){const g=gates[i],passed=i&lt;checkpoint,isNext=i===checkpoint;const alpha=passed?.2:isNext?1:.28;worldRing(g,1.85,C.flow,alpha,isNext?3:1);if(isNext){worldRing({...g,z:g.z+.28},2.03,C.flow,.22,1);for(let j=0;j&lt;4;j++){const a=j*Math.PI/2+(running?flightTime*.5:0);orb({x:g.x+Math.cos(a)*2.15,y:g.y+Math.sin(a)*2.15,z:g.z},.08,C.flow,.8);}if(overview||g.z-ship.z&lt;35)label(&#x27;第&#x27;+(i+1)+&#x27;站 · &#x27;+g.name,{...g,y:g.y+2.8});}else if(overview&amp;&amp;i===6)label(&#x27;点外卖概率&#x27;,{...g,y:g.y+3});}
-if(overview){neuralInputs.forEach(n=&gt;label(n.name,{...n,y:n.y-3}));neuralHidden.forEach(n=&gt;label(n.name,{...n,y:n.y-4}));label(neuralOutput.name,{...neuralOutput,y:neuralOutput.y-5});}
-const future=gates[checkpoint];if(future){for(let k=1;k&lt;=9;k++){const p=mix(ship,future,k/10);orb(p,.04,C.flow,.28);}if(!overview){const q=project(future);if(q){const x=clamp(q.x,28,W-28),y=clamp(q.y,36,H-28);if(Math.abs(x-q.x)&gt;5||Math.abs(y-q.y)&gt;5){ctx.fillStyle=C.fg;ctx.font=&#x27;400 &#x27;+font+&#x27;px system-ui&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.fillText(q.x&lt;0?&#x27;←&#x27;:q.x&gt;W?&#x27;→&#x27;:q.y&lt;0?&#x27;↑&#x27;:&#x27;↓&#x27;,x,y);}}}}
+if(overview){
+ neuralInputs.forEach(n=&gt;label(n.name,{...n,y:n.y-3}));neuralHidden.forEach(n=&gt;label(n.name,{...n,y:n.y-4}));label(neuralOutput.name,{...neuralOutput,y:neuralOutput.y-5});
+}else{
+ const focus=focusedGate();
+ for(let i=gates.length-1;i&gt;=0;i--){if(i&lt;focus)continue;const g=gates[i],active=i===focus;worldRing(g,1.85,active?C.flow:C.border,active?.85:.13,active?2:1);}
+ drawComputationSpace();
+ const future=gates[checkpoint];if(future&amp;&amp;readHold&lt;=0&amp;&amp;!finished){
+  for(let k=1;k&lt;=7;k++){const point=mix(ship,future,k/8);orb(point,.035,C.flow,.25);}
+  const q=project(future);if(q){const x=clamp(q.x,28,W-28),y=clamp(q.y,50,H-28);if(Math.abs(x-q.x)&gt;5||Math.abs(y-q.y)&gt;5){ctx.fillStyle=C.fg;ctx.font=&#x27;400 &#x27;+font+&#x27;px system-ui&#x27;;ctx.textAlign=&#x27;center&#x27;;ctx.fillText(q.x&lt;0?&#x27;←&#x27;:q.x&gt;W?&#x27;→&#x27;:q.y&lt;0?&#x27;↑&#x27;:&#x27;↓&#x27;,x,y);}}
+ }
+}
 const shipQ=project(ship);if(shipQ){const r=overview?4:11;ctx.save();ctx.translate(shipQ.x,shipQ.y);ctx.rotate(-vel.x*.025);ctx.fillStyle=C.flow;ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r*.8,r*.7);ctx.lineTo(0,r*.28);ctx.lineTo(-r*.8,r*.7);ctx.closePath();ctx.fill();ctx.globalAlpha=.22;ctx.beginPath();ctx.moveTo(-r*.4,r*.6);ctx.lineTo(0,r*(running?2.5:1.1));ctx.lineTo(r*.4,r*.6);ctx.fill();ctx.restore();}
 if(flash&gt;0&amp;&amp;!reduced){ctx.save();ctx.globalAlpha=flash*.08;ctx.fillStyle=C.flow;ctx.fillRect(0,0,W,H);ctx.restore();}
 ctx.fillStyle=C.border;ctx.globalAlpha=.4;ctx.fillRect(0,H-3,W,3);ctx.globalAlpha=1;ctx.fillStyle=C.flow;ctx.fillRect(0,H-3,W*checkpoint/7,3);
@@ -1979,7 +2003,7 @@ const keyMap={ArrowLeft:&#x27;left&#x27;,a:&#x27;left&#x27;,A:&#x27;left&#x27;,A
 window.addEventListener(&#x27;keydown&#x27;,e=&gt;{const k=keyMap[e.key];if(k&amp;&amp;(hover||root.contains(document.activeElement))){e.preventDefault();keys.add(k);}});window.addEventListener(&#x27;keyup&#x27;,e=&gt;{const k=keyMap[e.key];if(k)keys.delete(k);});window.addEventListener(&#x27;blur&#x27;,()=&gt;{keys.clear();drag=null;});
 root.querySelectorAll(&#x27;[data-move]&#x27;).forEach(b=&gt;{const k=b.dataset.move;b.onpointerdown=e=&gt;{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(k);};b.onpointerup=b.onpointercancel=()=&gt;keys.delete(k);b.onclick=()=&gt;{if(!running||overview)return;target.x=clamp(target.x+(k===&#x27;right&#x27;?.9:k===&#x27;left&#x27;?-.9:0),-11,11);target.y=clamp(target.y+(k===&#x27;up&#x27;?.9:k===&#x27;down&#x27;?-.9:0),-7,7);};});
 canvas.onpointerenter=()=&gt;hover=true;canvas.onpointerleave=()=&gt;hover=false;canvas.onpointerdown=e=&gt;{canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,tx:target.x,ty:target.y,yaw:overviewYaw,pitch:overviewPitch};};canvas.onpointermove=e=&gt;{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(overview){overviewYaw=drag.yaw-dx*.007;overviewPitch=clamp(drag.pitch+dy*.005,-.9,1.1);draw();}else{target.x=clamp(drag.tx+dx*.025,-11,11);target.y=clamp(drag.ty-dy*.025,-7,7);}};canvas.onpointerup=canvas.onpointercancel=()=&gt;{drag=null;};
-function frame(now){frameNow=now;const dt=last===null?0:Math.min(.05,(now-last)/1000);last=now;update(dt);flash=Math.max(0,flash-dt*1.4);draw();requestAnimationFrame(frame);}
+function frame(now){frameNow=now;const dt=last===null?0:Math.min(.05,(now-last)/1000);last=now;update(dt);if(finished&amp;&amp;readHold&gt;0)readHold=Math.max(0,readHold-dt);flash=Math.max(0,flash-dt*1.4);draw();requestAnimationFrame(frame);}
 window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{const state=e.detail?.globals?.widgetState?.modelContent;if(typeof state?.overview===&#x27;boolean&#x27;){overview=state.overview;updateView();draw();}});document.addEventListener(&#x27;visibilitychange&#x27;,()=&gt;{last=null;keys.clear();});
 new ResizeObserver(fit).observe(scene);new MutationObserver(()=&gt;{theme();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:[&#x27;class&#x27;,&#x27;style&#x27;,&#x27;data-theme&#x27;]});updateView();syncData();fit();requestAnimationFrame(frame);
 })();
