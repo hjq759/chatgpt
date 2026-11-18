@@ -1985,6 +1985,7 @@ function refreshModel(){
  canvas.setAttribute(&#x27;aria-label&#x27;,&#x27;三维 MLP 飞行游戏，输入饥饿0.80和价格贵0.40。朋友②的饥饿权重为&#x27;+num(w)+&#x27;，隐藏输出为&#x27;+num(a)+&#x27;，最终概率为&#x27;+pct()+&#x27;%。&#x27;);
  lastMlpCheckpoint=-1;syncData();syncMLP();syncControls();
  if(checkpoint){formula.textContent=gates[checkpoint-1].equation;value.textContent=gates[checkpoint-1].detail;cargo.textContent=&#x27;当前数值：&#x27;+gates[checkpoint-1].value;}
+ else{formula.textContent=&#x27;饥饿程度：0.80；价格贵的程度：0.40&#x27;;value.textContent=w&lt;0?&#x27;当前使用负权重：这条饥饿消息的贡献反向，变为 &#x27;+num(part)+&#x27;。价格消息另外贡献 −0.200。&#x27;:&#x27;当前饥饿权重 &#x27;+num(w)+&#x27;，带来 &#x27;+num(part)+&#x27; 的贡献；价格消息另外贡献 −0.200。拖动滑杆，观察这个倍数怎样影响结果。&#x27;;}
  if(finished){status.textContent=&#x27;计算完成：点外卖概率 &#x27;+pct()+&#x27;%&#x27;;cargo.textContent=&#x27;点外卖概率：&#x27;+pct()+&#x27;%&#x27;;}
  updateLossPreview();draw();
 }
@@ -2087,7 +2088,7 @@ const shipQ=project(ship);if(shipQ){const r=overview?4:11;ctx.save();ctx.transla
 if(flash&gt;0&amp;&amp;!reduced){ctx.save();ctx.globalAlpha=flash*.08;ctx.fillStyle=C.flow;ctx.fillRect(0,0,W,H);ctx.restore();}
 ctx.fillStyle=C.border;ctx.globalAlpha=.4;ctx.fillRect(0,H-3,W,3);ctx.globalAlpha=1;ctx.fillStyle=C.flow;ctx.fillRect(0,H-3,W*checkpoint/7,3);
 }
-function reset(){ship={x:-4,y:0,z:0};target={x:-4,y:0};vel={x:0,y:0};checkpoint=0;flightTime=0;readHold=0;notice=&#x27;&#x27;;lastNotice=&#x27;&#x27;;lastNoticeTime=frameNow;finished=false;launched=false;count.textContent=&#x27;已通过 0 / 7 站&#x27;;cargo.textContent=&#x27;当前数值：0.800&#x27;;formula.textContent=&#x27;饥饿程度：0.80；价格贵的程度：0.40&#x27;;value.textContent=&#x27;越饿越支持点外卖，越贵越反对。每位朋友在意的程度不同，这个“在意程度”就是权重。&#x27;;syncData();}
+function reset(){ship={x:-4,y:0,z:0};target={x:-4,y:0};vel={x:0,y:0};checkpoint=0;flightTime=0;readHold=0;notice=&#x27;&#x27;;lastNotice=&#x27;&#x27;;lastNoticeTime=frameNow;finished=false;launched=false;count.textContent=&#x27;已通过 0 / 7 站&#x27;;cargo.textContent=&#x27;当前数值：0.800&#x27;;formula.textContent=&#x27;饥饿程度：0.80；价格贵的程度：0.40&#x27;;value.textContent=&#x27;越饿越支持点外卖，越贵越反对。每位朋友在意的程度不同，这个“在意程度”就是权重。&#x27;;refreshModel();}
 function updateView(){view.setAttribute(&#x27;aria-pressed&#x27;,String(overview));view.textContent=overview?&#x27;回到送消息路线&#x27;:&#x27;看看朋友们的位置&#x27;;start.textContent=overview?&#x27;回到送消息路线&#x27;:finished?&#x27;再讨论一次&#x27;:running?&#x27;暂停，看他怎么算&#x27;:launched?&#x27;继续送消息&#x27;:&#x27;带着饥饿消息出发&#x27;;}
 start.onclick=()=&gt;{if(overview){overview=false;if(!finished)running=true;}else{if(finished)reset();running=!running;}launched=true;keys.clear();last=null;updateView();status.textContent=running?&#x27;出发！把饥饿消息送给朋友②，对准前方光环就能通过。&#x27;:&#x27;已暂停，可以慢慢读朋友的算式和下方账本。&#x27;;save();draw();};
 view.onclick=()=&gt;{overview=!overview;keys.clear();updateView();status.textContent=overview?&#x27;拖动画面环绕观察：饥饿与价格消息 → 三位朋友 → 群聊汇总。送消息过程暂时停住。&#x27;:finished?&#x27;讨论完成：点外卖概率 &#x27;+pct()+&#x27;%&#x27;:running?&#x27;已回到送消息路线，继续对准前方光环。&#x27;:&#x27;已回到送消息路线，点击出发按钮继续。&#x27;;save();draw();};
